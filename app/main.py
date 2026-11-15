@@ -22,7 +22,7 @@ from pydantic import BaseModel, Field
 
 from app.config import DB_PATH
 from app.db import DatabaseNotFoundError, QueryExecutionError, describe_data, run_query
-from app.llm import ClaudeSqlGenerator, LLMError, SqlGenerator
+from app.llm import LLMError, OpenAISqlGenerator, SqlGenerator
 from app.validator import QueryValidationError, validate_query
 
 app = FastAPI(
@@ -53,7 +53,7 @@ class ErrorResponse(BaseModel):
 
 @lru_cache
 def get_sql_generator() -> SqlGenerator:
-    return ClaudeSqlGenerator()
+    return OpenAISqlGenerator()
 
 
 def get_db_path() -> Path:

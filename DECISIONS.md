@@ -20,7 +20,7 @@ from the allowed tables.
 
 The endpoint depends on a "question → SQL" function, not on a specific provider. The
 endpoint test can then replace the LLM with a mock without touching the network, and
-switching providers changes a single file.
+switching providers changes a single file (this happened: see D-010).
 
 ## D-004 · Lightweight version of my AI harness
 
@@ -126,13 +126,30 @@ execution) and does not bound query cost, so a heavy self-join is accepted.
 - **The LLM is asked for plain SQL, not JSON.** Its answer is untrusted either way and
   goes through the validator; a JSON wrapper would add a parsing step and no safety. A
   fixed `CANNOT_ANSWER` reply lets the model decline instead of inventing a query.
-- **Model: `claude-opus-5-5` by default, at low effort**, overridable with
-  `ANTHROPIC_MODEL`. Translating a short question into one query does not need deep
-  reasoning, and low effort keeps the endpoint fast. A smaller model would be cheaper;
-  choosing it should come from measuring answers on a set of real questions, which
-  this project does not have yet.
-- **Server-side refusal fallback is enabled** (`fallbacks="default"`), so a request a
-  safety classifier declines is retried on a fallback model inside the same call.
 - **The endpoint does not turn rows into a sentence.** It returns columns and rows. A
   second LLM call to phrase the answer would double cost and latency and add a place
   where a number can be misreported.
+- **Provider and model**: see D-010.
+
+## D-010 · LLM provider: OpenAI-compatible API instead of Claude
+
+The first version of the LLM client used the Anthropic API. I had no Anthropic API key
+to test it with (a Claude subscription seat does not include API access), and I did not
+want code in the repository that had never run against a real model. I do have OpenAI
+and DeepSeek keys, so the client was rewritten for them.
+
+- **One client for both providers.** DeepSeek follows the OpenAI chat-completions
+  format, so the same code serves both: `LLM_BASE_URL` and `LLM_MODEL` select the
+  provider. OpenAI is the default because it is the key a reviewer most likely has.
+- **Provider-neutral setting names** (`LLM_API_KEY`, not `OPENAI_API_KEY`), since the
+  key may belong to another provider.
+- **The change touched one module and its tests.** The endpoint, the validator and the
+  endpoint tests did not change, which is what the `SqlGenerator` interface in D-003
+  was for.
+- **Only the chat-completions parameters every compatible provider accepts are sent**
+  (model and messages). No temperature or token limit, because providers and model
+  families disagree on which of those they accept.
+- **Choosing the model is a measurement, not a guess.** The default is a small model
+  because the task is a short translation. Picking between models should come from
+  running a set of real questions with known answers, which this project does not
+  have yet.

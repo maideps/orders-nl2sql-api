@@ -54,7 +54,9 @@ Only orders with status `completed` count as sales.
 
 ## 3. Ask questions through the API
 
-Copy `.env.example` to `.env` and set `ANTHROPIC_API_KEY`. Then start the server:
+Copy `.env.example` to `.env` and set `LLM_API_KEY` to an OpenAI key. Any provider with
+an OpenAI-compatible API works: for DeepSeek, also set `LLM_BASE_URL` and `LLM_MODEL` as
+shown in `.env.example`. Then start the server:
 
 ```bash
 uvicorn app.main:app --reload

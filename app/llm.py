@@ -1,7 +1,9 @@
 """Turn a natural-language question into SQL with an LLM.
 
-The API depends on the `SqlGenerator` interface, not on a provider. `ClaudeSqlGenerator`
+The API depends on the `SqlGenerator` interface, not on a provider. `OpenAISqlGenerator`
 is the real implementation; tests replace it with a fake that never touches the network.
+It talks to any API that follows the OpenAI chat format, so OpenAI and DeepSeek both
+work by changing settings in `.env`.
 
 Whatever the LLM returns is untrusted text. This module only extracts it: the decision
 to run it belongs to `app.validator`.
@@ -10,9 +12,10 @@ to run it belongs to `app.validator`.
 import os
 from typing import Protocol
 
-import anthropic
+import openai
 
-DEFAULT_MODEL = "claude-opus-5-5"
+DEFAULT_MODEL = "gpt-5-mini"
+REQUEST_TIMEOUT_SECONDS = 30.0
 CANNOT_ANSWER = "CANNOT_ANSWER"
 
 SYSTEM_PROMPT_TEMPLATE = """\
@@ -81,54 +84,55 @@ def extract_sql(text: str) -> str:
     return sql
 
 
-class ClaudeSqlGenerator:
-    """SqlGenerator backed by the Anthropic API.
+class OpenAISqlGenerator:
+    """SqlGenerator for any API that follows the OpenAI chat-completions format.
 
-    Credentials come from the environment (ANTHROPIC_API_KEY, loaded from `.env`).
+    Settings come from the environment (loaded from `.env`):
+      LLM_API_KEY   required
+      LLM_BASE_URL  optional; set it to use another provider, e.g. https://api.deepseek.com
+      LLM_MODEL     optional; defaults to DEFAULT_MODEL
     """
 
-    def __init__(self, model: str | None = None, client: anthropic.Anthropic | None = None):
-        self.model = model or os.getenv("ANTHROPIC_MODEL") or DEFAULT_MODEL
+    def __init__(self, model: str | None = None, client: openai.OpenAI | None = None):
+        self.model = model or os.getenv("LLM_MODEL") or DEFAULT_MODEL
         self._client = client
 
-    @property
-    def client(self) -> anthropic.Anthropic:
+    def _get_client(self) -> openai.OpenAI:
         # Created on first use, so the API starts without a key and tests need none
         if self._client is None:
-            self._client = anthropic.Anthropic(timeout=30.0)
+            api_key = os.getenv("LLM_API_KEY")
+            if not api_key:
+                raise LLMError("The LLM credentials are not configured. Set LLM_API_KEY in .env.")
+            self._client = openai.OpenAI(
+                api_key=api_key,
+                base_url=os.getenv("LLM_BASE_URL") or None,
+                timeout=REQUEST_TIMEOUT_SECONDS,
+            )
         return self._client
 
     def generate_sql(self, question: str, data: dict[str, list[str]]) -> str:
+        client = self._get_client()
         try:
-            response = self.client.beta.messages.create(
+            response = client.chat.completions.create(
                 model=self.model,
-                max_tokens=16000,
-                # The task is a short translation: low effort keeps the answer fast
-                output_config={"effort": "low"},
-                # If a safety classifier declines, the API retries on a fallback model
-                betas=["server-side-fallback-2026-07-01"],
-                fallbacks="default",
-                system=build_system_prompt(data),
-                messages=[{"role": "user", "content": question}],
+                messages=[
+                    {"role": "system", "content": build_system_prompt(data)},
+                    {"role": "user", "content": question},
+                ],
             )
-        except anthropic.AnthropicError as error:
-            # Covers a rejected key, rate limits, timeouts and server errors
+        except openai.OpenAIError as error:
+            # Covers a rejected key, an unknown model, rate limits, timeouts and server errors
             raise LLMError(f"The LLM request failed: {type(error).__name__}.") from error
-        except TypeError as error:
-            # With no credentials at all the SDK raises TypeError before sending anything
-            if "authentication" not in str(error):
-                raise
-            raise LLMError(
-                "The LLM credentials are not configured. Set ANTHROPIC_API_KEY in .env."
-            ) from error
 
-        if response.stop_reason == "refusal":
+        if not response.choices:
+            raise LLMError("The LLM returned an empty answer.")
+        choice = response.choices[0]
+        if choice.finish_reason == "content_filter" or getattr(choice.message, "refusal", None):
             raise LLMError("The LLM declined to answer this question.")
-        if response.stop_reason == "max_tokens":
+        if choice.finish_reason == "length":
             raise LLMError("The LLM answer was cut off before it finished.")
 
-        text = "".join(block.text for block in response.content if block.type == "text")
-        sql = extract_sql(text)
+        sql = extract_sql(choice.message.content or "")
         if not sql:
             raise LLMError("The LLM returned an empty answer.")
         if sql == CANNOT_ANSWER:

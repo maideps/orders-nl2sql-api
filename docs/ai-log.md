@@ -78,3 +78,13 @@ corrected. This log feeds the "How I used AI" section of the README.
   The AI fixed it and added tests for the real client with the SDK replaced by a fake.
 - **Not verified**: no request has been sent to the real model. No API key was
   available while this step was built, so the quality of the generated SQL is untested.
+
+## 5b · Switching the LLM provider
+
+- **What happened**: the AI built the LLM client for the Anthropic API, its own
+  provider, without asking which key I had. I have no Anthropic API key, only OpenAI
+  and DeepSeek ones.
+- **What I corrected**: I chose to replace the Claude client with an OpenAI-compatible
+  one, with OpenAI as the default, instead of keeping both and leaving a path in the
+  repository that had never run against a real model (see D-010).
+- **What it cost**: one module and its tests. The endpoint and its tests did not change.
