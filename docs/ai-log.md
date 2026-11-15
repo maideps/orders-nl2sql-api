@@ -23,6 +23,9 @@ corrected. This log feeds the "How I used AI" section of the README.
 - **What I accepted**: the rule in `AGENTS.md`, based on the `commit` skill of my
   ai-harness-framework, with extra limits on habits LLMs have (listing files, praise
   words, claiming checks that did not run).
+- **Gap found afterwards**: the AI pointed out that Claude Code reads `CLAUDE.md`, not
+  `AGENTS.md`, so the rule was not loaded on its own. I approved adding a `CLAUDE.md`
+  that imports it.
 
 ## 1 · Raw data generator
 
