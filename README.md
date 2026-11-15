@@ -43,6 +43,15 @@ empty amounts kept as null      30
 rows clean                     980
 ```
 
+The same command creates two views, defined in [`app/sql/views.sql`](app/sql/views.sql):
+
+| View | Columns | Meaning |
+|------|---------|---------|
+| `sales_by_month_country` | `month`, `country`, `orders`, `total_sales` | Completed orders per month (`YYYY-MM`) and country |
+| `top_10_customers` | `customer`, `country`, `orders`, `total_spent` | The ten customers who spent the most |
+
+Only orders with status `completed` count as sales.
+
 ## Verification
 
 ```bash

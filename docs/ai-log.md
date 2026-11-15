@@ -41,3 +41,11 @@ corrected. This log feeds the "How I used AI" section of the README.
 - **What the AI proposed beyond the request**: keeping rows with an empty amount as
   NULL instead of dropping them, an explicit list of date formats read as day first,
   and a printed report with a count per rule (see D-006).
+
+## 3 · SQL views
+
+- **What I asked for**: the two views, sales by month and country and the top 10
+  customers.
+- **What the AI proposed beyond the request**: counting only `completed` orders as
+  sales, ranking customers by money spent, keeping the SQL in its own file and adding
+  tests for the views (see D-007).

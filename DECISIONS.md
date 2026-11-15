@@ -61,3 +61,15 @@ takes a few hours.
   rule, and a test checks those counts against the rates the generator uses.
 - **The table is rebuilt on every run**, inside one transaction, so the load can be
   repeated and never leaves a half-written table.
+
+## D-007 · What the views count as a sale
+
+- **Only orders with status `completed` are sales.** Pending orders may never be paid,
+  and cancelled or refunded ones brought in no money. Counting every status would
+  overstate revenue. The rule lives in the views, so every question answered through
+  them uses the same definition.
+- **"Customers who buy the most" is ranked by money spent**, not by number of orders.
+  The view also returns the order count, so the other reading is one `ORDER BY` away.
+  Ties are broken by customer name to keep the result stable.
+- **The views live in a `.sql` file** (`app/sql/views.sql`), not in Python strings, so
+  they can be read and reviewed as SQL. The load script recreates them on every run.

@@ -1,9 +1,9 @@
-"""Clean the raw orders CSV and load it into SQLite.
+"""Clean the raw orders CSV, load it into SQLite and create the reporting views.
 
 Usage: python -m app.load_orders [--input data/orders_raw.csv] [--db data/orders.db]
 
-The `orders` table is rebuilt on every run, so running the script twice gives the same
-database.
+The `orders` table and the views are rebuilt on every run, so running the script twice
+gives the same database.
 """
 
 import argparse
@@ -15,6 +15,8 @@ import pandas as pd
 
 from app.cleaning import CleaningReport, clean_orders
 from app.config import DB_PATH, RAW_CSV_PATH
+
+VIEWS_SQL_PATH = Path(__file__).parent / "sql" / "views.sql"
 
 CREATE_ORDERS_TABLE = """
 CREATE TABLE orders (
@@ -48,9 +50,19 @@ def load_orders(orders: pd.DataFrame, db_path: Path) -> None:
         connection.close()
 
 
+def create_views(db_path: Path) -> None:
+    """(Re)create the reporting views defined in `app/sql/views.sql`."""
+    connection = sqlite3.connect(db_path)
+    try:
+        connection.executescript(VIEWS_SQL_PATH.read_text(encoding="utf-8"))
+    finally:
+        connection.close()
+
+
 def run(input_path: Path, db_path: Path) -> CleaningReport:
     orders, report = clean_orders(read_raw_csv(input_path))
     load_orders(orders, db_path)
+    create_views(db_path)
     return report
 
 
