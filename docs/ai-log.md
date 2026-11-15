@@ -49,3 +49,16 @@ corrected. This log feeds the "How I used AI" section of the README.
 - **What the AI proposed beyond the request**: counting only `completed` orders as
   sales, ranking customers by money spent, keeping the SQL in its own file and adding
   tests for the views (see D-007).
+
+## 4 · Query validator
+
+- **What I asked for**: validation of the SQL before it runs: read-only and allowed
+  tables only, with a test.
+- **How the AI worked**: before writing the validator it ran a probe script to see how
+  the installed sqlglot version parses about twenty safe and unsafe queries, and wrote
+  the checks from that output instead of from memory.
+- **What the AI proposed beyond the request**: rejecting multiple statements,
+  schema-qualified names, table-valued functions and `sqlite_*` names; a function
+  denylist; and an enforced row limit (see D-008).
+- **What the AI checked afterwards**: that the SQL returned by the validator gives the
+  same result as the original query on the real database, for five sample queries.
