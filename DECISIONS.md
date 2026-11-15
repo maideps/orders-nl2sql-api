@@ -98,3 +98,41 @@ on SQLite after validation, to catch a rewrite that changes or breaks the query.
 
 Known limits: the validator does not check that columns exist (SQLite reports that at
 execution) and does not bound query cost, so a heavy self-join is accepted.
+
+## D-009 · The question endpoint
+
+- **One endpoint, `POST /ask`, with four separate steps**: the LLM writes SQL, the
+  validator checks it, SQLite runs it read-only, the rows are returned. Each step has
+  its own error, so a caller can tell what went wrong:
+
+  | Status | `error` | Meaning |
+  |--------|---------|---------|
+  | 422 | `invalid_query` | The LLM's SQL broke a validator rule. It was not run. |
+  | 422 | `query_execution_failed` | The SQL was valid but SQLite rejected it (for example an unknown column) or it ran out of time. |
+  | 502 | `llm_error` | The LLM call failed, was declined, was cut off, or came back empty or unanswerable. |
+  | 503 | `database_not_found` | The load script has not been run. |
+
+- **The response includes the SQL that ran**, and error responses include the SQL the
+  LLM wrote. For a tool that answers business questions, being able to see how a number
+  was computed matters as much as the number.
+- **Second barrier: a read-only connection.** The API opens SQLite with `mode=ro`, so
+  even a query that got past the validator cannot write. A test runs a `DELETE`
+  straight on that connection, without the validator, and checks SQLite refuses it.
+- **Queries are stopped after 2 seconds** with SQLite's progress handler. This covers
+  the cost limit the validator does not have.
+- **The prompt carries the real values from the database** (countries, statuses,
+  products, date range), read on each request. That is how "España" becomes
+  `'Spain'` and "marzo" becomes `2025-03` without hard-coding the data in the prompt.
+- **The LLM is asked for plain SQL, not JSON.** Its answer is untrusted either way and
+  goes through the validator; a JSON wrapper would add a parsing step and no safety. A
+  fixed `CANNOT_ANSWER` reply lets the model decline instead of inventing a query.
+- **Model: `claude-opus-5-5` by default, at low effort**, overridable with
+  `ANTHROPIC_MODEL`. Translating a short question into one query does not need deep
+  reasoning, and low effort keeps the endpoint fast. A smaller model would be cheaper;
+  choosing it should come from measuring answers on a set of real questions, which
+  this project does not have yet.
+- **Server-side refusal fallback is enabled** (`fallbacks="default"`), so a request a
+  safety classifier declines is retried on a fallback model inside the same call.
+- **The endpoint does not turn rows into a sentence.** It returns columns and rows. A
+  second LLM call to phrase the answer would double cost and latency and add a place
+  where a number can be misreported.

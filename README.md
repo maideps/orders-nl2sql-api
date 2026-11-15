@@ -52,6 +52,52 @@ The same command creates two views, defined in [`app/sql/views.sql`](app/sql/vie
 
 Only orders with status `completed` count as sales.
 
+## 3. Ask questions through the API
+
+Copy `.env.example` to `.env` and set `ANTHROPIC_API_KEY`. Then start the server:
+
+```bash
+uvicorn app.main:app --reload
+```
+
+Ask a question (interactive docs are at http://127.0.0.1:8000/docs):
+
+```bash
+curl -X POST http://127.0.0.1:8000/ask -H "Content-Type: application/json" -d "{\"question\": \"How much did we sell in Spain in March?\"}"
+```
+
+A successful answer returns the SQL that ran and its result:
+
+```json
+{
+  "question": "How much did we sell in Spain in March?",
+  "sql": "SELECT total_sales FROM sales_by_month_country WHERE country = 'Spain' AND month = '2025-03' LIMIT 200",
+  "columns": ["total_sales"],
+  "rows": [[2440.0]],
+  "row_count": 1
+}
+```
+
+The `sql` above is an example of a query that gives the right result on this data; the
+exact text depends on what the LLM writes.
+
+When something fails, the response says which step failed:
+
+| Status | `error` | Meaning |
+|--------|---------|---------|
+| 422 | `invalid_query` | The LLM's SQL is not a single read-only query over the allowed tables. It was not run. |
+| 422 | `query_execution_failed` | The SQL was valid but SQLite could not run it. |
+| 502 | `llm_error` | The LLM failed, declined, or had no usable answer. |
+| 503 | `database_not_found` | Run `python -m app.load_orders` first. |
+
+```json
+{
+  "error": "invalid_query",
+  "message": "Only SELECT queries are allowed.",
+  "sql": "DROP TABLE orders"
+}
+```
+
 ## Verification
 
 ```bash

@@ -62,3 +62,19 @@ corrected. This log feeds the "How I used AI" section of the README.
   denylist; and an enforced row limit (see D-008).
 - **What the AI checked afterwards**: that the SQL returned by the validator gives the
   same result as the original query on the real database, for five sample queries.
+
+## 5 · Question endpoint and LLM client
+
+- **What I asked for**: the FastAPI endpoint that takes a question, has an LLM write
+  the query, validates it, runs it and returns the result, with clear errors and a
+  test that mocks the LLM.
+- **What the AI proposed beyond the request**: a read-only SQLite connection as a
+  second barrier, a 2-second query timeout, a separate error code per failing step,
+  returning the executed SQL, and feeding the prompt with real values from the
+  database (see D-009).
+- **A bug the tests did not catch**: all tests passed with the LLM mocked, but when the
+  AI called the endpoint with the real client and no API key, the response was a 500.
+  The SDK raises `TypeError`, not one of its own errors, when no credentials exist.
+  The AI fixed it and added tests for the real client with the SDK replaced by a fake.
+- **Not verified**: no request has been sent to the real model. No API key was
+  available while this step was built, so the quality of the generated SQL is untested.
