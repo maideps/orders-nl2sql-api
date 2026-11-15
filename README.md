@@ -25,6 +25,24 @@ Writes `data/orders_raw.csv`: 1,000 distinct orders plus 40 duplicated rows, wit
 in mixed formats, dates that do not exist and empty amounts. The output is reproducible
 (`--seed`, default 42).
 
+## 2. Clean the data and load it into SQLite
+
+```bash
+python -m app.load_orders
+```
+
+Reads `data/orders_raw.csv`, applies the cleaning rules and rebuilds the `orders` table
+in `data/orders.db`. It prints what happened to the rows:
+
+```
+rows read                     1040
+duplicates removed              40
+dates reformatted               50
+invalid dates dropped           20
+empty amounts kept as null      30
+rows clean                     980
+```
+
 ## Verification
 
 ```bash

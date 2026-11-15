@@ -33,3 +33,11 @@ corrected. This log feeds the "How I used AI" section of the README.
   errors the assignment lists.
 - **What the AI proposed beyond the request**: an `order_id` column, a fixed seed, exact
   error rates per type, and a small test for the generator (see D-005).
+
+## 2 · Cleaning and load into SQLite
+
+- **What I asked for**: the script that cleans the CSV and stores it in SQLite, with a
+  test for the cleaning.
+- **What the AI proposed beyond the request**: keeping rows with an empty amount as
+  NULL instead of dropping them, an explicit list of date formats read as day first,
+  and a printed report with a count per rule (see D-006).

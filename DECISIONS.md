@@ -42,3 +42,22 @@ takes a few hours.
   checked against exact counts.
 - **All orders fall in 2025.** A question such as "sales in March" then has one answer;
   handling several years is listed as future work.
+
+## D-006 · Cleaning rules
+
+- **Duplicates: one row per `order_id`, the first one seen.** In this data duplicates
+  are exact copies, so which copy is kept does not matter. Two rows with the same id
+  and different content would need a rule (for example, the most recent) that the
+  assignment does not define.
+- **Dates: rewritten as ISO `YYYY-MM-DD`.** The accepted formats are listed explicitly
+  instead of letting a library guess, because guessing silently swaps day and month.
+  Slash and dash dates are read as day first.
+- **Unrecoverable dates: the row is dropped and counted.** An order without a date
+  cannot be placed in any month, and inventing one would distort the sales views.
+- **Empty amounts: the row is kept with `amount` as NULL.** The order did happen, so it
+  still counts as an order; `SUM` ignores NULL, so it adds nothing to sales. Filling in
+  a value (zero, an average) would change the totals without anyone noticing.
+- **Nothing is dropped silently.** The script prints a report with the count for each
+  rule, and a test checks those counts against the rates the generator uses.
+- **The table is rebuilt on every run**, inside one transaction, so the load can be
+  repeated and never leaves a half-written table.
