@@ -10,9 +10,9 @@ corrected. This log feeds the "How I used AI" section of the README.
   initial structure.
 - **What I accepted**: the proposed stack (SQLite, pandas, sqlglot, FastAPI), the order
   of steps with one commit per feature, and the name `orders-nl2sql-api`.
-- **What I decided myself**: to use a lightweight version of the harness instead of
-  installing it in full, to show how I work with AI without filling the repository with
-  harness files.
+- **What I decided**: to use a lightweight version of the harness instead of
+  installing it in full, as the AI advised when I asked, to show how I work with AI
+  without filling the repository with harness files.
 - **What I corrected**: the first version of the project files was written in Spanish;
   I asked for everything inside the project to be in English.
 
@@ -103,6 +103,18 @@ corrected. This log feeds the "How I used AI" section of the README.
   provider failure that had not happened. The AI proposed and made a separate 422
   `question_not_answerable`. This was visible only with the real model: every mocked
   test passed before and after.
+- **How the answers were checked**: the six results were recomputed with pandas on the
+  cleaned data, without SQL, and all six match.
 - **Limit**: nine hand-picked questions on one model. The three refusals never reached
   the validator, because the model declined first; the validator is covered by its
   own tests, not by this run.
+
+## 6 · README
+
+- **What I asked for**: the final README with how to run it, the decisions, what I
+  would do with more time and how I used AI.
+- **What the AI did**: wrote it from `DECISIONS.md` and this log, then cloned the
+  repository into an empty folder and ran the README commands there to check they work
+  from scratch.
+- **What it corrected in its own draft**: two sentences in the AI section said more
+  than what happened (who proposed the light harness, and who checked the answers).
