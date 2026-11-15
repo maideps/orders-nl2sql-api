@@ -63,7 +63,7 @@ The same command creates two views, defined in [`app/sql/views.sql`](app/sql/vie
 | View | Columns | Meaning |
 |------|---------|---------|
 | `sales_by_month_country` | `month`, `country`, `orders`, `total_sales` | Completed orders per month (`YYYY-MM`) and country |
-| `top_10_customers` | `customer`, `country`, `orders`, `total_spent` | The ten customers who spent the most |
+| `top_10_customers` | `customer`, `orders`, `total_spent` | The ten customers who spent the most, one row per customer |
 
 Only orders with status `completed` count as sales.
 
@@ -234,6 +234,9 @@ shape the project:
   the time limit.
 - **Dates across several years.** The data covers 2025 only, so "in March" has one
   answer. With more years the API should ask which one, or state the year it assumed.
+- **A customer identifier.** Customers are identified by name, so two different
+  people with the same name count as one. The statement has no customer id; real data
+  needs one.
 - **Conflicting duplicates.** Two rows with the same `order_id` and different content
   are not handled: the first one wins. A real source needs a rule, such as the most
   recent row, and a report of the conflicts.

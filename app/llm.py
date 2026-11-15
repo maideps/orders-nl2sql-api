@@ -31,7 +31,7 @@ sales_by_month_country: completed orders per month and country
   month TEXT (YYYY-MM), country TEXT, orders INTEGER, total_sales REAL
 
 top_10_customers: the ten customers who spent the most (completed orders)
-  customer TEXT, country TEXT, orders INTEGER, total_spent REAL
+  customer TEXT, orders INTEGER, total_spent REAL
 
 Values in the data:
 - country: {countries}

@@ -37,13 +37,13 @@
   {
     "id": "top-3-customers",
     "question": "¿Quiénes son los 3 clientes que más compran?",
-    "gold_sql": "SELECT customer FROM orders WHERE status = 'completed' GROUP BY customer, country ORDER BY SUM(amount) DESC LIMIT 3",
+    "gold_sql": "SELECT customer FROM orders WHERE status = 'completed' GROUP BY customer ORDER BY SUM(amount) DESC LIMIT 3",
     "ordered": true
   },
   {
     "id": "top-customer-spend",
     "question": "How much has our best customer spent?",
-    "gold_sql": "SELECT ROUND(SUM(amount), 2) AS spent FROM orders WHERE status = 'completed' GROUP BY customer, country ORDER BY spent DESC LIMIT 1"
+    "gold_sql": "SELECT ROUND(SUM(amount), 2) AS spent FROM orders WHERE status = 'completed' GROUP BY customer ORDER BY spent DESC LIMIT 1"
   },
   {
     "id": "top-product-revenue",

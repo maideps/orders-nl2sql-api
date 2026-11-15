@@ -21,6 +21,7 @@ def query(tmp_path):
         _order(4, "2025-03-22", "Luis Lopez", "Spain", 999.0, "cancelled"),  # not a sale
         _order(5, "2025-04-01", "Ana Garcia", "Spain", 30.0, "completed"),
         _order(6, "2025-03-10", "Marta Perez", "Mexico", 70.0, "completed"),
+        _order(7, "2025-05-01", "Ana Garcia", "Mexico", 40.0, "completed"),  # second country
     ]
     # Twelve more customers so the top-10 limit has something to cut
     rows += [
@@ -47,6 +48,7 @@ def test_sales_are_grouped_by_month_and_country(query):
         # 3 completed orders in Spain; the empty amount adds nothing, the cancelled one is out
         ("2025-03", "Spain", 3, 150.0),
         ("2025-04", "Spain", 1, 30.0),
+        ("2025-05", "Mexico", 1, 40.0),
     ]
 
 
@@ -54,10 +56,17 @@ def test_top_customers_are_the_ten_highest_spenders_in_order(query):
     rows = query("SELECT customer, total_spent FROM top_10_customers")
 
     assert len(rows) == 10
-    assert rows[:2] == [("Ana Garcia", 180.0), ("Marta Perez", 70.0)]
+    assert rows[:2] == [("Ana Garcia", 220.0), ("Marta Perez", 70.0)]
     assert [spent for _, spent in rows] == sorted((spent for _, spent in rows), reverse=True)
     # The cancelled 999.00 order must not put Luis Lopez in the ranking
     assert "Luis Lopez" not in [customer for customer, _ in rows]
+
+
+def test_a_customer_with_orders_in_two_countries_is_one_buyer(query):
+    rows = query("SELECT customer, orders, total_spent FROM top_10_customers")
+
+    # 180.00 from Spain plus 40.00 from Mexico, in a single row
+    assert [row for row in rows if row[0] == "Ana Garcia"] == [("Ana Garcia", 4, 220.0)]
 
 
 def test_views_can_be_recreated_on_an_existing_database(query, tmp_path):

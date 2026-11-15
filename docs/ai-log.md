@@ -145,3 +145,18 @@ corrected. This log feeds the "How I used AI" section of the README.
 - **After the changes: 28/28, twice.** The AI pointed out that this number is
   optimistic, because the prompt was tuned on the same cases, and that is stated in
   the README next to the result.
+
+## 8 · Review of the finished project
+
+- **What I did**: I had the project reviewed and brought the findings back to the AI,
+  asking which were already covered, and then asked it to check the README against
+  the code.
+- **A real finding**: `top_10_customers` grouped by customer and country, so a customer
+  with orders in two countries would appear as two buyers. The AI had written the
+  view that way and its tests passed, because the generated data gives each customer
+  one country. I had it fixed: the view groups by customer only, and a test now
+  includes a customer with two countries.
+- **README against the code**: the AI found four sentences in its own README that
+  claimed more than the code does, and corrected them.
+- **Already covered**: running from a clean clone (done earlier and by CI on every
+  push) and the weaker function check in the validator (documented as future work).

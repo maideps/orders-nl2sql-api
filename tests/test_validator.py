@@ -14,7 +14,7 @@ VALID_QUERIES = [
     "SELECT customer, total_spent FROM top_10_customers ORDER BY total_spent DESC",
     "SELECT strftime('%Y-%m', order_date) AS month, COUNT(*) FROM orders GROUP BY month",
     "WITH spain AS (SELECT * FROM orders WHERE country = 'Spain') SELECT COUNT(*) FROM spain",
-    "SELECT country FROM orders UNION SELECT country FROM top_10_customers",
+    "SELECT customer FROM orders UNION SELECT customer FROM top_10_customers",
     "SELECT * FROM orders WHERE amount > (SELECT AVG(amount) FROM orders)",
     "select * from ORDERS -- trailing comment",
     # A word like "update" or "delete" inside a value is data, not a statement

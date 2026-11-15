@@ -71,6 +71,12 @@ takes a few hours.
 - **"Customers who buy the most" is ranked by money spent**, not by number of orders.
   The view also returns the order count, so the other reading is one `ORDER BY` away.
   Ties are broken by customer name to keep the result stable.
+- **A customer is one buyer, whatever countries they order from.** The first version
+  of the view grouped by customer and country, which would have split a customer with
+  orders in two countries into two smaller buyers. In the generated data each customer
+  has a single country, so the result was the same and no test noticed; a review
+  pointed it out. The view now groups by customer only and has no `country` column.
+  Customers are still identified by name: two people with the same name count as one.
 - **The views live in a `.sql` file** (`app/sql/views.sql`), not in Python strings, so
   they can be read and reviewed as SQL. The load script recreates them on every run.
 
