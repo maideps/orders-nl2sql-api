@@ -11,6 +11,7 @@ and only then is it run.
 question ──> LLM writes SQL ──> validator ──> read-only SQLite ──> rows + the SQL that ran
                   │                 │                │
               502 llm_error    422 invalid_query   422 query_execution_failed
+              422 question_not_answerable
 ```
 
 Contents: [How to run it](#how-to-run-it) · [Tests](#tests) · [Evaluation](#evaluation) ·
@@ -146,8 +147,8 @@ python -m evals.run --report evals/REPORT.md
 ```
 
 This sends the 28 cases in [`evals/questions.json`](evals/questions.json) to the real
-model through the endpoint. It needs `LLM_API_KEY` and costs a few cents, so it is not
-part of `check.py` or CI.
+model through the endpoint. It needs `LLM_API_KEY` and every run is billed by the
+provider, so it is not part of `check.py` or CI.
 
 - **22 questions about the data**, in Spanish and English. Each has a reference query
   written by hand. A case passes when the endpoint's rows hold the same values as the
@@ -178,8 +179,9 @@ app/
   validator.py       checks the LLM's SQL on its syntax tree
   llm.py             prompt and LLM client behind a small interface
   db.py              read-only connection with a time limit
+  config.py          settings read from the environment and `.env`
   main.py            FastAPI app with POST /ask
-tests/               one file per module
+tests/               the tests, listed in the table above
 evals/               questions with reference answers, the runner and the last report
 AGENTS.md            rules the AI assistant works under
 DECISIONS.md         every decision and its reason
@@ -201,7 +203,9 @@ shape the project:
   date cannot be recovered is dropped and counted. A row with an empty amount is kept
   with `NULL`: the order happened, and `SUM` ignores `NULL`, so sales are not distorted.
 - **A sale is a `completed` order.** Pending, cancelled and refunded orders are not
-  revenue. The rule lives in the views, so every answer uses the same definition.
+  revenue. The views apply the rule. The LLM can also query the `orders` table
+  directly; there the rule is stated in the prompt, which the model is asked to follow
+  but nothing enforces.
 - **The LLM's SQL is treated as untrusted input.** It is parsed with sqlglot and
   checked on its syntax tree, not with text matching: one statement, a `SELECT`, only
   the allowed tables, a row limit of 200. Text matching would reject a product named
@@ -209,9 +213,9 @@ shape the project:
 - **Two barriers, not one.** Behind the validator, the API opens SQLite read-only and
   stops any query after 2 seconds. A test runs a `DELETE` on that connection without
   the validator and checks that SQLite refuses it.
-- **Each failure has its own error code**, and the response always shows the SQL
-  involved. For a tool that answers business questions, seeing how a number was
-  computed matters as much as the number.
+- **Each failure has its own error code**, and the response shows the SQL involved
+  whenever the LLM got as far as writing one. For a tool that answers business
+  questions, seeing how a number was computed matters as much as the number.
 - **The LLM sits behind a small interface.** That is what lets the tests mock it, and
   it is why changing provider late in the project touched one module.
 - **The prompt carries the real values in the database** (countries, statuses,
@@ -291,7 +295,8 @@ thing I take from this: mocked tests show the code agrees with itself, and the
 assistant's work still has to be run against reality before it is called done.
 
 **What was verified, and what was not.** The endpoint was run against a real model
-with my own key. A first pass of nine questions was recomputed with pandas, without
-SQL. Then I asked for an evaluation set: 28 cases with reference answers, which scored
+with my own key. In a first pass of nine questions, the six that have an answer were
+recomputed with pandas, without SQL; the other three were refusals. Then I asked for
+an evaluation set: 28 cases with reference answers, which scored
 26/28 and, after one prompt fix and one corrected case, 28/28 twice. That score is
 optimistic, for the reason given in [Evaluation](#evaluation). DeepSeek was not run.
