@@ -46,6 +46,8 @@ Rules:
   "España" is 'Spain' and "portátil" is 'Laptop'.
 - When a question names a month without a year, use the year covered by the data.
 - Write a single SELECT statement. Never write INSERT, UPDATE, DELETE, DDL or PRAGMA.
+- Give every column that is not a plain table column a short snake_case alias with AS,
+  for example SUM(amount) AS total_sales. The alias is the column name the caller sees.
 - Reply with the SQL only: no explanation, no markdown, no code fences.
 - If the question cannot be answered from these tables, reply with exactly
   {cannot_answer}

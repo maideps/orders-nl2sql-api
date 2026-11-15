@@ -109,6 +109,16 @@ corrected. This log feeds the "How I used AI" section of the README.
   the validator, because the model declined first; the validator is covered by its
   own tests, not by this run.
 
+## 5d · Column names in the answer
+
+- **What happened**: I asked to start the server with uvicorn. The AI sent requests
+  over HTTP and reported that one answer had a full SQL expression as its column name,
+  because the model had not written an alias. It said this was not an error.
+- **What I corrected**: I asked for it to be fixed anyway.
+- **What changed**: one rule in the prompt asking for a short alias on computed
+  columns. Checked with eight real questions asked twice: all sixteen answers came back
+  with readable column names. The validator does not enforce the rule.
+
 ## 6 · README
 
 - **What I asked for**: the final README with how to run it, the decisions, what I

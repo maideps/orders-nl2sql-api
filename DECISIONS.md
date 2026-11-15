@@ -127,6 +127,10 @@ execution) and does not bound query cost, so a heavy self-join is accepted.
 - **The LLM is asked for plain SQL, not JSON.** Its answer is untrusted either way and
   goes through the validator; a JSON wrapper would add a parsing step and no safety. A
   fixed `CANNOT_ANSWER` reply lets the model decline instead of inventing a query.
+- **The prompt asks for an alias on every computed column.** `columns` in the response
+  comes straight from the query, so without an alias a caller received a whole SQL
+  expression as a column name. This is a request to the model, not a guarantee: the
+  validator does not enforce it.
 - **The endpoint does not turn rows into a sentence.** It returns columns and rows. A
   second LLM call to phrase the answer would double cost and latency and add a place
   where a number can be misreported.
