@@ -13,7 +13,7 @@ question ──> LLM writes SQL ──> validator ──> read-only SQLite ─�
               502 llm_error    422 invalid_query   422 query_execution_failed
 ```
 
-Contents: [How to run it](#how-to-run-it) · [Tests](#tests) ·
+Contents: [How to run it](#how-to-run-it) · [Tests](#tests) · [Evaluation](#evaluation) ·
 [Decisions](#decisions) · [With more time](#what-i-would-do-with-more-time) ·
 [How I used AI](#how-i-used-ai)
 
@@ -134,6 +134,38 @@ on every push, on Linux with Python 3.12.
 | [`tests/test_llm.py`](tests/test_llm.py) | The LLM client with the SDK replaced by a fake: refusals, cut-off answers, network errors, a missing key |
 | [`tests/test_views.py`](tests/test_views.py) | The two views on a small hand-written data set |
 | [`tests/test_generate_data.py`](tests/test_generate_data.py) | The generator: row counts, the three kinds of error, reproducibility |
+| [`tests/test_evals.py`](tests/test_evals.py) | The evaluation tooling: every reference query is valid and returns data, and the result comparison is fair |
+
+## Evaluation
+
+The tests show the code handles every kind of LLM answer. They do not show that the
+real model writes correct SQL. That is measured separately:
+
+```bash
+python -m evals.run --report evals/REPORT.md
+```
+
+This sends the 28 cases in [`evals/questions.json`](evals/questions.json) to the real
+model through the endpoint. It needs `LLM_API_KEY` and costs a few cents, so it is not
+part of `check.py` or CI.
+
+- **22 questions about the data**, in Spanish and English. Each has a reference query
+  written by hand. A case passes when the endpoint's rows hold the same values as the
+  reference rows: the result is compared, not the SQL text, since many queries are right.
+- **6 requests that must be refused**: delete or change data, read a system table, an
+  off-topic question, data the tables do not have, and a prompt injection. A case
+  passes when the endpoint answers with an error and runs nothing.
+
+Latest result with `gpt-5-mini`, in [`evals/REPORT.md`](evals/REPORT.md): **28/28**,
+median latency 3.6 seconds. How to read that number:
+
+- The first run scored 26/28. One failure was the model's: asked for the customers who
+  "buy the most", it ranked by number of orders instead of money spent. The prompt now
+  states the definition. The other was mine: the question "which is the largest order"
+  had three tied orders and a reference answer of one row, so the case was reworded.
+- After those two changes it scored 28/28 twice in a row. Because the prompt was
+  adjusted with these same questions, 28/28 is not an unbiased accuracy estimate: it
+  says these cases work, not that 100% of new questions will.
 
 ## Project layout
 
@@ -148,6 +180,7 @@ app/
   db.py              read-only connection with a time limit
   main.py            FastAPI app with POST /ask
 tests/               one file per module
+evals/               questions with reference answers, the runner and the last report
 AGENTS.md            rules the AI assistant works under
 DECISIONS.md         every decision and its reason
 docs/ai-log.md       what I asked the AI, accepted and corrected, step by step
@@ -186,10 +219,10 @@ shape the project:
 
 ## What I would do with more time
 
-- **An evaluation set.** A file of questions with their expected results, run against
-  the real model, giving an accuracy figure. Today I know nine hand-picked questions
-  work; I cannot say how often the model is right, or compare two models or two
-  prompts. This is the first thing I would build.
+- **A larger evaluation with a held-out part.** The 28 cases were also used to adjust
+  the prompt, so their score is optimistic. I would add questions the prompt has never
+  been tuned on, harder ones (comparisons between periods, questions with two
+  readings), and use the set to compare models and prompts by cost and accuracy.
 - **Let the model correct itself once.** When the SQL fails validation or execution,
   send the error back to the LLM for one retry before answering with an error.
 - **Stricter validation.** Replace the function denylist with an allowlist, check that
@@ -205,8 +238,8 @@ shape the project:
   questions.
 - **PostgreSQL with a read-only role**, so the second barrier is a database permission
   instead of a connection flag.
-- **DeepSeek is supported by configuration but was not run.** I would test it and
-  compare it with OpenAI on the evaluation set.
+- **DeepSeek is supported by configuration but was not run.** I would run the
+  evaluation on it and compare it with OpenAI.
 
 ## How I used AI
 
@@ -258,6 +291,7 @@ thing I take from this: mocked tests show the code agrees with itself, and the
 assistant's work still has to be run against reality before it is called done.
 
 **What was verified, and what was not.** The endpoint was run against a real model
-with my own key: nine questions, six answerable and three that must be refused. The
-six answers were recomputed with pandas, without SQL, and match. Accuracy was not
-measured beyond those nine questions, and DeepSeek was not run.
+with my own key. A first pass of nine questions was recomputed with pandas, without
+SQL. Then I asked for an evaluation set: 28 cases with reference answers, which scored
+26/28 and, after one prompt fix and one corrected case, 28/28 twice. That score is
+optimistic, for the reason given in [Evaluation](#evaluation). DeepSeek was not run.

@@ -128,3 +128,20 @@ corrected. This log feeds the "How I used AI" section of the README.
   from scratch.
 - **What it corrected in its own draft**: two sentences in the AI section said more
   than what happened (who proposed the light harness, and who checked the answers).
+
+## 7 · CI and evaluation set
+
+- **What I asked for**: the AI had listed a CI workflow and an evaluation set under
+  "what I would do with more time" and advised delivering without them. I had time and
+  asked for both.
+- **CI**: a GitHub Actions workflow that runs `check.py` on Linux with Python 3.12.
+  The first run passed.
+- **Evaluation**: 28 cases (22 questions with a reference query, 6 requests that must
+  be refused), a runner that compares results by value, and tests for the tooling.
+- **First result: 26/28.** The AI read the two failures instead of adjusting until
+  green. One was the model ranking top customers by number of orders, which
+  contradicted D-007: fixed in the prompt. The other was the AI's own reference case,
+  ambiguous because three orders tie for the largest amount: the case was reworded.
+- **After the changes: 28/28, twice.** The AI pointed out that this number is
+  optimistic, because the prompt was tuned on the same cases, and that is stated in
+  the README next to the result.

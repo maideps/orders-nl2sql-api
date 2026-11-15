@@ -168,3 +168,32 @@ and DeepSeek keys, so the client was rewritten for them.
   because the task is a short translation. Picking between models should come from
   running a set of real questions with known answers, which this project does not
   have yet.
+
+## D-011 · Evaluation against the real model, and CI
+
+- **Two kinds of checking, kept apart.** `check.py` (ruff and pytest, also run by
+  GitHub Actions on every push) is free, offline and repeatable: it replaces the LLM
+  with a fake. `python -m evals.run` calls the real model, costs money and can change
+  from run to run, so it is run by hand and its last report is committed.
+- **Results are compared, not SQL text.** Each question has a reference query written
+  by hand; a case passes when the endpoint returns the same values. Two correct
+  queries rarely look alike, so comparing text would fail correct answers.
+- **The comparison is lenient on shape and strict on values.** Extra columns and a
+  different column order are accepted, because a model that returns the country next
+  to a total has not answered wrongly. The number of rows and every reference value
+  must match, with a tolerance of 0.01 for rounding. Row order counts only for
+  questions that ask for a ranking.
+- **Refusals are cases too.** Six requests must end in an error with nothing run. An
+  evaluation with only answerable questions would reward a model that answers
+  everything.
+- **The evaluation tooling has its own tests**, without the LLM: every reference query
+  must pass the validator and return data on the generated database, and the
+  comparison function is tested on matching and non-matching results. A wrong
+  reference answer would make the score meaningless.
+- **What the first run found.** 26/28. The model ranked "customers who buy the most"
+  by number of orders; D-007 defines it as money spent, and the prompt did not say so.
+  The prompt now does. The other failure was a flawed case: three orders tie for the
+  largest amount and the reference expected one row. The question was reworded.
+- **How much the score means.** 28/28 twice after those changes. The prompt was
+  adjusted using these same cases, so this is not an unbiased estimate of accuracy on
+  new questions. A held-out set is listed as future work.

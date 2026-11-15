@@ -42,6 +42,8 @@ Values in the data:
 Rules:
 - A sale is an order with status 'completed'. Questions about sales, revenue or money
   sold count only those orders.
+- Customers who "buy the most", "best" or "top" customers are ranked by money spent on
+  completed orders, not by number of orders, unless the question asks for the count.
 - Questions may be in any language. Map names to the stored values, for example
   "España" is 'Spain' and "portátil" is 'Laptop'.
 - When a question names a month without a year, use the year covered by the data.
