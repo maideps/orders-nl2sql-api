@@ -109,7 +109,8 @@ execution) and does not bound query cost, so a heavy self-join is accepted.
   |--------|---------|---------|
   | 422 | `invalid_query` | The LLM's SQL broke a validator rule. It was not run. |
   | 422 | `query_execution_failed` | The SQL was valid but SQLite rejected it (for example an unknown column) or it ran out of time. |
-  | 502 | `llm_error` | The LLM call failed, was declined, was cut off, or came back empty or unanswerable. |
+  | 422 | `question_not_answerable` | The LLM replied that the orders data cannot answer the question (off-topic, or a request to change data). |
+  | 502 | `llm_error` | The LLM call failed, was declined, was cut off or came back empty. |
   | 503 | `database_not_found` | The load script has not been run. |
 
 - **The response includes the SQL that ran**, and error responses include the SQL the
@@ -149,6 +150,16 @@ and DeepSeek keys, so the client was rewritten for them.
 - **Only the chat-completions parameters every compatible provider accepts are sent**
   (model and messages). No temperature or token limit, because providers and model
   families disagree on which of those they accept.
+- **Checked against the real model.** Nine questions were sent through the endpoint
+  with `gpt-5-mini`: six about the data, in Spanish and English, and three that should
+  be refused (delete orders, the weather, read `sqlite_master`). The six returned
+  correct results, checked against the database, in 2 to 6 seconds each; the three
+  were refused by the model itself. Nine questions show the pipeline works; they are
+  not a measure of accuracy.
+- **A question the data cannot answer is a 422, not a 502.** The first real run showed
+  those three refusals coming back as `llm_error`, as if the provider had failed. The
+  model had worked and declined correctly, so the case got its own error,
+  `question_not_answerable`.
 - **Choosing the model is a measurement, not a guess.** The default is a small model
   because the task is a short translation. Picking between models should come from
   running a set of real questions with known answers, which this project does not

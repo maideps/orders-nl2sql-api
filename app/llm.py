@@ -56,9 +56,13 @@ class LLMError(Exception):
     """The LLM call failed or returned nothing usable. The message is safe to show."""
 
 
+class QuestionNotAnswerableError(Exception):
+    """The LLM worked and said the question cannot be answered from the orders data."""
+
+
 class SqlGenerator(Protocol):
     def generate_sql(self, question: str, data: dict[str, list[str]]) -> str:
-        """Return the SQL text for the question, or raise LLMError."""
+        """Return the SQL text, or raise LLMError or QuestionNotAnswerableError."""
 
 
 def build_system_prompt(data: dict[str, list[str]]) -> str:
@@ -136,5 +140,7 @@ class OpenAISqlGenerator:
         if not sql:
             raise LLMError("The LLM returned an empty answer.")
         if sql == CANNOT_ANSWER:
-            raise LLMError("The LLM could not answer this question from the orders data.")
+            raise QuestionNotAnswerableError(
+                "This question cannot be answered from the orders data."
+            )
         return sql

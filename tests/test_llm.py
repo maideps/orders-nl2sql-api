@@ -10,7 +10,7 @@ import httpx
 import openai
 import pytest
 
-from app.llm import CANNOT_ANSWER, LLMError, OpenAISqlGenerator
+from app.llm import CANNOT_ANSWER, LLMError, OpenAISqlGenerator, QuestionNotAnswerableError
 
 DATA = {
     "countries": ["Spain"],
@@ -67,9 +67,13 @@ def test_network_failure_becomes_an_llm_error():
         (_response(None), "empty answer"),
         (_response("   "), "empty answer"),
         (SimpleNamespace(choices=[]), "empty answer"),
-        (_response(CANNOT_ANSWER), "could not answer"),
     ],
 )
 def test_unusable_answers_become_llm_errors(response, message):
     with pytest.raises(LLMError, match=message):
         _generator(response).generate_sql("What is the weather?", DATA)
+
+
+def test_the_cannot_answer_reply_is_not_an_llm_failure():
+    with pytest.raises(QuestionNotAnswerableError):
+        _generator(_response(CANNOT_ANSWER)).generate_sql("What is the weather?", DATA)

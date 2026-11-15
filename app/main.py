@@ -8,7 +8,8 @@ Flow of POST /ask:
 Every failure has its own status code and a machine-readable `error` code:
     422 invalid_query            the LLM's SQL broke a validation rule; it was not run
     422 query_execution_failed   the SQL passed validation but SQLite rejected it
-    502 llm_error                the LLM failed, declined or returned nothing usable
+    422 question_not_answerable  the LLM said the orders data cannot answer the question
+    502 llm_error                the LLM failed, declined or returned an empty answer
     503 database_not_found       the load script has not been run yet
 """
 
@@ -22,7 +23,7 @@ from pydantic import BaseModel, Field
 
 from app.config import DB_PATH
 from app.db import DatabaseNotFoundError, QueryExecutionError, describe_data, run_query
-from app.llm import LLMError, OpenAISqlGenerator, SqlGenerator
+from app.llm import LLMError, OpenAISqlGenerator, QuestionNotAnswerableError, SqlGenerator
 from app.validator import QueryValidationError, validate_query
 
 app = FastAPI(
@@ -84,6 +85,8 @@ def ask(
         generated_sql = generator.generate_sql(request.question, data)
     except LLMError as error:
         return _error(502, "llm_error", str(error))
+    except QuestionNotAnswerableError as error:
+        return _error(422, "question_not_answerable", str(error))
 
     try:
         safe_sql = validate_query(generated_sql)

@@ -8,7 +8,7 @@ from fastapi.testclient import TestClient
 
 from app.cleaning import COLUMNS
 from app.db import QueryExecutionError, run_query
-from app.llm import LLMError, build_system_prompt, extract_sql
+from app.llm import LLMError, QuestionNotAnswerableError, build_system_prompt, extract_sql
 from app.load_orders import create_views, load_orders
 from app.main import app, get_db_path, get_sql_generator
 
@@ -104,6 +104,16 @@ def test_llm_failure_gives_a_clear_502(ask):
         "message": "The LLM request failed: APITimeoutError.",
         "sql": None,
     }
+
+
+def test_question_the_data_cannot_answer_is_a_422_not_an_llm_failure(ask):
+    response = ask(
+        QuestionNotAnswerableError("This question cannot be answered from the orders data."),
+        question="What is the weather in Madrid today?",
+    )
+
+    assert response.status_code == 422
+    assert response.json()["error"] == "question_not_answerable"
 
 
 def test_valid_sql_that_sqlite_cannot_run_gives_a_clear_error(ask):

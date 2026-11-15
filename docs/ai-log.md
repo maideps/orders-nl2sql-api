@@ -88,3 +88,21 @@ corrected. This log feeds the "How I used AI" section of the README.
   one, with OpenAI as the default, instead of keeping both and leaving a path in the
   repository that had never run against a real model (see D-010).
 - **What it cost**: one module and its tests. The endpoint and its tests did not change.
+
+## 5c · First run against a real model
+
+- **What I asked for**: after adding my OpenAI key to `.env`, to run real questions
+  through the endpoint.
+- **What the AI did**: confirmed `.env` is ignored by git, listed the models my key can
+  use to check the default exists, and sent nine questions (six answerable, three that
+  must be refused).
+- **Result**: the six answerable questions returned correct results and the three were
+  refused. "¿Cuánto vendimos en España en marzo?" returns 2440.00, the value in the
+  database.
+- **What the run changed**: refusals came back as a 502 `llm_error`, which describes a
+  provider failure that had not happened. The AI proposed and made a separate 422
+  `question_not_answerable`. This was visible only with the real model: every mocked
+  test passed before and after.
+- **Limit**: nine hand-picked questions on one model. The three refusals never reached
+  the validator, because the model declined first; the validator is covered by its
+  own tests, not by this run.
