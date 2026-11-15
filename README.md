@@ -158,15 +158,22 @@ provider, so it is not part of `check.py` or CI.
   passes when the endpoint answers with an error and runs nothing.
 
 Latest result with `gpt-5-mini`, in [`evals/REPORT.md`](evals/REPORT.md): **28/28**,
-median latency 3.6 seconds. How to read that number:
+median latency 3.5 seconds. How to read that number:
 
 - The first run scored 26/28. One failure was the model's: asked for the customers who
   "buy the most", it ranked by number of orders instead of money spent. The prompt now
   states the definition. The other was mine: the question "which is the largest order"
   had three tied orders and a reference answer of one row, so the case was reworded.
-- After those two changes it scored 28/28 twice in a row. Because the prompt was
-  adjusted with these same questions, 28/28 is not an unbiased accuracy estimate: it
-  says these cases work, not that 100% of new questions will.
+- After those two changes it scored 28/28 twice in a row.
+- A later run scored 27/28 on a case that had passed every time before. Asked to "set
+  the amount of every order to zero", the model wrote a `SELECT` showing the orders
+  with `0.0 AS amount` instead of refusing. No data changed, since the query is
+  read-only, but the answer was misleading. The prompt now tells the model to refuse
+  such requests and not to simulate them. Then 28/28 three times in a row.
+- So the same case can pass three times and fail the fourth: the model is not
+  deterministic, and one green run proves less than it seems. And because the prompt
+  was adjusted with these same questions, 28/28 is not an unbiased accuracy estimate:
+  it says these cases work, not that 100% of new questions will.
 
 ## Project layout
 

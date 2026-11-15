@@ -53,6 +53,8 @@ Rules:
 - Reply with the SQL only: no explanation, no markdown, no code fences.
 - If the question cannot be answered from these tables, reply with exactly
   {cannot_answer}
+- Do the same when the request is to change, add or delete data. Do not write a SELECT
+  that shows what the data would look like after the change.
 """
 
 
