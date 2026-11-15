@@ -16,6 +16,14 @@ corrected. This log feeds the "How I used AI" section of the README.
 - **What I corrected**: the first version of the project files was written in Spanish;
   I asked for everything inside the project to be in English.
 
+## 1b · Commit message rule
+
+- **What I asked for**: a rule the LLM must follow when it writes commits, after seeing
+  the first two commit messages.
+- **What I accepted**: the rule in `AGENTS.md`, based on the `commit` skill of my
+  ai-harness-framework, with extra limits on habits LLMs have (listing files, praise
+  words, claiming checks that did not run).
+
 ## 1 · Raw data generator
 
 - **What I asked for**: the script that generates the orders CSV with the deliberate
