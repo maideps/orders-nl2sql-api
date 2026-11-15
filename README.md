@@ -1,5 +1,7 @@
 # orders-nl2sql-api
 
+[![CI](https://github.com/maideps/orders-nl2sql-api/actions/workflows/ci.yml/badge.svg)](https://github.com/maideps/orders-nl2sql-api/actions/workflows/ci.yml)
+
 A small Python project built on orders data. It cleans a CSV that contains deliberate
 errors, loads it into SQLite, defines two reporting views and exposes a FastAPI endpoint
 that answers questions in natural language: an LLM writes the SQL, the SQL is validated,
@@ -121,7 +123,8 @@ python check.py
 ```
 
 Runs the style check (ruff) and the tests (pytest). The tests need no API key and send
-no request: the LLM is always replaced by a fake.
+no request: the LLM is always replaced by a fake. GitHub Actions runs the same command
+on every push, on Linux with Python 3.12.
 
 | File | What it covers |
 |------|----------------|
@@ -201,7 +204,7 @@ shape the project:
   logs of each question with its SQL, latency and token cost, and a cache for repeated
   questions.
 - **PostgreSQL with a read-only role**, so the second barrier is a database permission
-  instead of a connection flag, and a CI workflow that runs `check.py` on every push.
+  instead of a connection flag.
 - **DeepSeek is supported by configuration but was not run.** I would test it and
   compare it with OpenAI on the evaluation set.
 
