@@ -230,10 +230,12 @@ shape the project:
 
 ## What I would do with more time
 
-- **A larger evaluation with a held-out part.** The 28 cases were also used to adjust
-  the prompt, so their score is optimistic. I would add questions the prompt has never
-  been tuned on, harder ones (comparisons between periods, questions with two
-  readings), and use the set to compare models and prompts by cost and accuracy.
+- **A larger evaluation with a held-out part, run several times.** The 28 cases were
+  also used to adjust the prompt, so their score is optimistic, and a case that passes
+  once can fail on another run. I would add questions the prompt has never been tuned
+  on, harder ones (comparisons between periods, questions with two readings), report
+  each case as a pass rate over several runs, and use the set to compare models and
+  prompts by cost and accuracy.
 - **Let the model correct itself once.** When the SQL fails validation or execution,
   send the error back to the LLM for one retry before answering with an error.
 - **Stricter validation.** Replace the function denylist with an allowlist, check that
@@ -307,6 +309,6 @@ assistant's work still has to be run against reality before it is called done.
 **What was verified, and what was not.** The endpoint was run against a real model
 with my own key. In a first pass of nine questions, the six that have an answer were
 recomputed with pandas, without SQL; the other three were refusals. Then I asked for
-an evaluation set: 28 cases with reference answers, which scored
-26/28 and, after one prompt fix and one corrected case, 28/28 twice. That score is
-optimistic, for the reason given in [Evaluation](#evaluation). DeepSeek was not run.
+an evaluation set: 28 cases with reference answers. It scored 26/28 at first, found a
+third problem in a later run, and now passes 28/28. That score is optimistic, for the
+reasons given in [Evaluation](#evaluation). DeepSeek was not run.

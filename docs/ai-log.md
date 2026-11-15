@@ -160,3 +160,9 @@ corrected. This log feeds the "How I used AI" section of the README.
   claimed more than the code does, and corrected them.
 - **Already covered**: running from a clean clone (done earlier and by CI on every
   push) and the weaker function check in the validator (documented as future work).
+- **A third evaluation finding**: after the view fix the AI ran the evaluation again
+  and one refusal case failed that had passed in every earlier run. The model answered
+  "set the amount of every order to zero" with a `SELECT` that showed zeros. The AI
+  checked that it was unrelated to the view change, fixed the prompt, ran the
+  evaluation three more times (28/28 each) and wrote in the README that a single green
+  run proves less than it seems.

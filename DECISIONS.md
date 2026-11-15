@@ -200,6 +200,14 @@ and DeepSeek keys, so the client was rewritten for them.
   by number of orders; D-007 defines it as money spent, and the prompt did not say so.
   The prompt now does. The other failure was a flawed case: three orders tie for the
   largest amount and the reference expected one row. The question was reworded.
-- **How much the score means.** 28/28 twice after those changes. The prompt was
-  adjusted using these same cases, so this is not an unbiased estimate of accuracy on
-  new questions. A held-out set is listed as future work.
+- **What a later run found.** 27/28, on a case that had passed in every earlier run.
+  Asked to set every amount to zero, the model wrote a `SELECT` with `0.0 AS amount`
+  instead of refusing. The validator was right to accept it: it is a read-only query
+  over an allowed table, and no data changed. The problem is the answer, which looks
+  like the change was made. The validator cannot judge intent, so the fix is in the
+  prompt: refuse requests to change data and do not simulate them.
+- **How much the score means.** 28/28 three times after that change. Two limits apply.
+  The model is not deterministic: the same case passed three times and failed the
+  fourth, so a single run is weak evidence and a pass rate over several runs would be
+  a better measure. And the prompt was adjusted using these same cases, so this is not
+  an unbiased estimate of accuracy on new questions. Both are listed as future work.
