@@ -15,6 +15,16 @@ python -m venv .venv
 pip install -r requirements.txt
 ```
 
+## 1. Generate the raw data
+
+```bash
+python -m app.generate_data
+```
+
+Writes `data/orders_raw.csv`: 1,000 distinct orders plus 40 duplicated rows, with dates
+in mixed formats, dates that do not exist and empty amounts. The output is reproducible
+(`--seed`, default 42).
+
 ## Verification
 
 ```bash

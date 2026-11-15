@@ -29,3 +29,16 @@ I work with my own agent harness
 only its method (`AGENTS.md`, `check.py`, this file and `docs/ai-log.md`) and do not
 install the full harness: it would add Node and state files to a Python project that
 takes a few hours.
+
+## D-005 · Shape of the generated data
+
+- **An `order_id` column is added** to the six fields the assignment lists. It gives
+  "duplicate" a precise meaning (the same order appearing twice) instead of relying on
+  every field matching by chance.
+- **The generator is seeded and the CSV is not committed.** Anyone gets the same file by
+  running the script, and the repository holds no generated data.
+- **Each error type is applied to a separate set of rows** (4% duplicates, 5% dates in
+  another format, 2% impossible dates, 3% empty amounts), so the cleaning step can be
+  checked against exact counts.
+- **All orders fall in 2025.** A question such as "sales in March" then has one answer;
+  handling several years is listed as future work.

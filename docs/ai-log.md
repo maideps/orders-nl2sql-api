@@ -15,3 +15,10 @@ corrected. This log feeds the "How I used AI" section of the README.
   harness files.
 - **What I corrected**: the first version of the project files was written in Spanish;
   I asked for everything inside the project to be in English.
+
+## 1 · Raw data generator
+
+- **What I asked for**: the script that generates the orders CSV with the deliberate
+  errors the assignment lists.
+- **What the AI proposed beyond the request**: an `order_id` column, a fixed seed, exact
+  error rates per type, and a small test for the generator (see D-005).
